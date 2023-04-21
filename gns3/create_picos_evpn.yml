@@ -1,0 +1,164 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+  vars:
+    gns3_url: "http://172.16.0.169"
+    gns3_port: 80
+    gns3_nodes_spec:
+      - name: spine-1
+        template: "picos-v4.3.2.2"
+        x: -351
+        y: -247
+      - name: spine-2
+        template: "picos-v4.3.2.2"
+        x: -81
+        y: -247
+      - name: leaf-1
+        template: "picos-v4.3.2.2"
+        x: -685
+        y: 0
+      - name: leaf-2
+        template: "picos-v4.3.2.2"
+        x: -385
+        y: 0
+      - name: leaf-3
+        template: "picos-v4.3.2.2"
+        x: -48
+        y: 0
+      - name: leaf-4
+        template: "picos-v4.3.2.2"
+        x: 309
+        y: 0
+
+      
+    gns3_links_spec:
+      - ["spine-1", "swp1", "leaf-1", "swp1"]
+      - ["spine-1", "swp2", "leaf-2", "swp1"]
+      - ["spine-1", "swp3", "leaf-3", "swp1"]
+      - ["spine-1", "swp4", "leaf-4", "swp1"]
+      - ["spine-2", "swp1", "leaf-1", "swp2"]
+      - ["spine-2", "swp2", "leaf-2", "swp2"]
+      - ["spine-2", "swp3", "leaf-3", "swp2"]
+      - ["spine-2", "swp4", "leaf-4", "swp2"]
+      - ["leaf-1", "swp4", "host-1", "Ethernet1"]
+      - ["leaf-2", "swp4", "host-2", "Ethernet1"]
+      - ["leaf-3", "swp3", "host-3", "Ethernet1"]
+      - ["leaf-3", "swp4", "host-4", "Ethernet1"]
+      - ["leaf-4", "swp3", "host-3", "Ethernet2"]
+      - ["leaf-4", "swp4", "host-4", "Ethernet2"]
+      - ["internal-network", "Ethernet2", "spine-1", "eth0"]
+      - ["internal-network", "Ethernet3", "spine-2", "eth0"]
+      - ["internal-network", "Ethernet4", "leaf-1", "eth0"]
+      - ["internal-network", "Ethernet5", "leaf-2", "eth0"]
+      - ["internal-network", "Ethernet6", "leaf-3", "eth0"]
+      - ["internal-network", "Ethernet7", "leaf-4", "eth0"]
+  collections:
+    - davidban77.gns3
+  tasks:
+    - name: Create network topology
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: pica8_evpn
+        state: present
+        nodes_spec: "{{ gns3_nodes_spec }}"
+        links_spec: "{{ gns3_links_spec }}"
+      register: result
+
+    - debug: var=result
+
+    - name: Get all nodes in project
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes'
+        method: GET
+        status_code: 200
+      register: nodes
+
+    - name: change mac address for ZTP spine-1
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:AA:AA:11",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "spine-1"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP spine-2
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:AA:AA:22",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "spine-2"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP leaf-1
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:BB:BB:11",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "leaf-1"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP leaf-2
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:BB:BB:22",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "leaf-2"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP leaf-3
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:BB:BB:33",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "leaf-3"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP leaf-4
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:BB:BB:44",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "leaf-4"
+      with_items: "{{ nodes['json'] }}"
+
+    - name: Start nodes
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: pica8_evpn
+        state: opened
+        nodes_state: started
+        nodes_strategy: one_by_one

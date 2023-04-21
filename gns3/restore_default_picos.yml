@@ -1,0 +1,30 @@
+---
+- hosts: evpn-spines
+  gather_facts: no
+  tasks:
+    - name: remove the config file
+      file:
+        path: /home/admin/spine.config
+        state: absent
+    - name: apply switch config
+      command: /pica/bin/pica_sh -c 'configure;rollback default;commit'
+
+- hosts: evpn-leafs
+  gather_facts: no
+  tasks:
+    - name: remove the config file
+      file:
+        path: /home/admin/leaf.config
+        state: absent
+    - name: apply switch config
+      command: /pica/bin/pica_sh -c 'configure;rollback default;commit'
+
+- hosts: evpn-leafs-multihoming
+  gather_facts: no
+  tasks:
+    - name: remove the config file
+      file:
+        path: /home/admin/leaf_multihoming.config
+        state: absent
+    - name: apply switch config
+      command: /pica/bin/pica_sh -c 'configure;rollback default;commit'

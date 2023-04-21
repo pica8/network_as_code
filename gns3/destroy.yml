@@ -1,0 +1,14 @@
+- hosts: localhost
+  gather_facts: no
+  vars:
+    gns3_url: "http://172.16.0.169"
+    gns3_port: 80
+  collections:
+    - davidban77.gns3
+  tasks:
+    - name: Stop nodes and delete project
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: pica8_evpn
+        state: absent

@@ -1,0 +1,19 @@
+---
+- name: Ampcon System Setup
+  hosts: ampcon
+  gather_facts: no
+  become: yes
+  tasks:
+  - name: copy switch config
+    copy:
+      src: "setup_with_playbook.sh"
+      dest: "/root/automation"
+      owner: root
+      group: root
+      mode: 755
+  - name: exec setup
+    shell: sh /root/automation/setup_with_playbook.sh {{ampcon_hostname}} {{ampcon_ipaddr}} {{ampcon_subnet}} {{ampcon_gateway}} {{ampcon_domain}} {{ampcon_dns1}} {{ampcon_dns2}} {{ampcon_ntpserver}} {{ampcon_newuser}} {{ampcon_new_pwd}}
+    register: exec_result
+  - name: Show execution result
+    debug: var=exec_result.stdout_lines
+

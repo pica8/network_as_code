@@ -1,0 +1,30 @@
+---
+- hosts: evpn-spines
+  gather_facts: no
+  tasks:
+    - name: write config to switch with template
+      template:
+        src: "../picos_template/spine_template.j2"
+        dest: "/home/admin/spine.config"
+    - name: apply switch config
+      command: /pica/bin/pica_sh -c 'configure;execute /home/admin/spine.config;commit'
+
+- hosts: evpn-leafs
+  gather_facts: no
+  tasks:
+    - name: write config to switch with template
+      template:
+        src: "../picos_template/leaf_template.j2"
+        dest: "/home/admin/leaf.config"
+    - name: apply switch config
+      command: /pica/bin/pica_sh -c 'configure;execute /home/admin/leaf.config;commit'
+
+- hosts: evpn-leafs-multihoming
+  gather_facts: no
+  tasks:
+    - name: write config to switch with template
+      template:
+        src: "../picos_template/leaf_multi_homing.j2"
+        dest: "/home/admin/leaf_multihoming.config"
+    - name: apply switch config
+      command: /pica/bin/pica_sh -c 'configure;execute /home/admin/leaf_multihoming.config;commit'

@@ -1,0 +1,9 @@
+#!/bin/bash
+source /usr/bin/ztp-functions.sh
+echo "admin:pica8" | sudo chpasswd
+tftp -m binary 192.168.1.2 -c get "leaf-4.config"
+#load picos configuration
+l2l3_load_config leaf-4.config
+if [ $? -ne 0 ]; then
+   exit 1
+fi

@@ -1,0 +1,12 @@
+---
+
+ampcon_hostname: ampcon
+ampcon_ipaddr: 192.168.1.3
+ampcon_subnet: 24
+ampcon_gateway: 192.168.1.1
+ampcon_domain: "pica8.com"
+ampcon_dns1: 8.8.8.8
+ampcon_dns2: 114.114.114.114
+ampcon_ntpserver: time.nist.gov
+ampcon_newuser: "ampcon-admin"
+ampcon_new_pwd: "pica8"

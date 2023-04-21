@@ -1,0 +1,37 @@
+set system hostname {{ hostname }}
+
+{% for port in network_side_ports -%}
+{% set port_name = port.keys() | first -%}
+set interface gigabit-ethernet {{ port_name }} routed-interface name {{ port[port_name]['routed-interface'] }}
+set interface gigabit-ethernet {{ port_name }} routed-interface enable true
+set l3-interface routed-interface {{ port[port_name]['routed-interface'] }}
+{% endfor -%}
+
+set ip routing enable true
+
+{% for lo_port in loopback_interfaces -%}
+{% set port_name = lo_port.keys() | first -%}
+set l3-interface loopback {{ port_name }} address {{ lo_port[port_name]['address'].split('/')[0] }} prefix-length {{ lo_port[port_name]['address'].split('/')[1] }}
+{% endfor -%}
+
+set vlans reserved-vlan "3000-3010"
+
+set protocols bgp local-as {{ bgp["asn"] }}
+set protocols bgp fast-external-failover true
+set protocols bgp ebgp-requires-policy false
+set protocols bgp network-import-check true
+set protocols bgp router-id {{ bgp["router-id"] }}
+set protocols bgp peer-group {{ bgp["peer-group"] }} remote-as "external"
+{% for port in bgp["interface"] -%}
+set protocols bgp interface {{ port }} capability extended-nexthop
+set protocols bgp interface {{ port }} ipv6-unicast activate true
+set protocols bgp interface {{ port }} evpn activate true
+set protocols bgp interface {{ port }} peer-group "{{ bgp["peer-group"] }}"
+{% endfor -%}
+set protocols bgp ipv4-unicast network {{ bgp["ipv4-unicast"] }}
+set protocols bgp evpn advertise-all-vni
+set protocols bgp evpn advertise ipv4-unicast
+set protocols bgp evpn advertise ipv6-unicast
+set protocols bgp evpn advertise-svi-ip
+
+set protocols lldp enable true

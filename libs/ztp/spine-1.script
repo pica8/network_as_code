@@ -1,0 +1,9 @@
+#!/bin/bash
+source /usr/bin/ztp-functions.sh
+echo "admin:pica8" | sudo chpasswd
+tftp -m binary 192.168.1.2 -c get "spine-1.config"
+#load picos configuration
+l2l3_load_config spine-1.config
+if [ $? -ne 0 ]; then
+   exit 1
+fi

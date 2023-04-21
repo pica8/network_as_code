@@ -1,0 +1,22 @@
+---
+
+hostname: "host-2"
+
+physical_if: ens4
+
+vlan_interfaces:
+    - name: "ens4.10"
+      vlan_id: 10
+      address: "192.168.10.102/24"
+    - name: "ens4.20"
+      vlan_id: 20
+      address: "192.168.20.102/24"
+    - name: "ens4.30"
+      vlan_id: 30
+      address: "192.168.30.102/24"
+    - name: "ens4.40"
+      vlan_id: 40
+      address: "192.168.40.102/24"
+
+routes:
+    - "sudo route add -net default gw 192.168.10.2"

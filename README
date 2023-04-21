@@ -1,0 +1,53 @@
+#####  Prepare installing
+pip3 install ansible
+pip3 install gns3fy
+pip3 install pydantic==1.9.2
+ansible-galaxy collection install davidban77.gns3
+
+
+Step-1:
+execute playbook to setup basic GNS3 topology. The internal network is 192.168.1.x/24.
+The ZTP server is also work as DHCP server, it internal IP is fixed 192.168.1.2/24. The DHCP will offer IP and let each switch execute script which are show in /libs/ztp
+
+ansible-playbook gns3/create_servers.yml
+After execute above playbook, it will create Ampcon, ZTP-server and 4 ubuntu hosts
+
+Step-2:
+Login console of ZTP-server and execute following command to active DHCP service 
+systemctl restart isc-dhcp-server
+
+Step-3:
+Execute playbook to craete 2 spines 3 leaf topoglogy with PICOS
+
+ansible-playbook gns3/create_picos_evpn.yml
+
+Because you setup the ZTP, it will be configured with host-name with spine-1, spine-2, leaf-1, leaf-2, leaf-3, leaf-4 with fixed IP
+spine-1 192.168.1.101
+spine-2 192.168.1.102
+leaf-1 192.168.1.201
+leaf-2 192.168.1.202
+leaf-3 192.168.1.203
+leaf-4 192.168.1.204
+
+Step-4:
+Login console of ZTP server, git download all playbook, and run following one to configure BGP-EVPN with multihoming
+(Running into ZTP server)
+
+ansible-playbook gns3/config_evpn_network.yml
+
+You also can restore all configuration for all PICOS-V
+
+ansible-playbook gns3/restore_default_picos.yml
+
+
+Step-5:
+You also can setup ampcon from ZTP server.
+
+ansible-playbook ampcon/ampcon_deploy.yml
+
+
+Step-6:
+You can remove the project by 
+ansible-playbook gns3/destroy.yml
+
+

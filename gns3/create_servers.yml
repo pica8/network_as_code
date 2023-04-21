@@ -1,0 +1,232 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+  vars:
+    gns3_url: "http://172.16.0.169"
+    gns3_port: 80
+    gns3_nodes_spec:
+      - name: host-1
+        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        x: -693
+        y: 142
+      - name: host-2
+        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        x: -392
+        y: 142
+      - name: host-3
+        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        x: -55
+        y: 142
+      - name: host-4
+        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        x: 304
+        y: 142
+      - name: ZTP-DHCP
+        template: "ZTP-server"
+        x: 289
+        y: -262
+      - name: Ampcon
+        template: "Ampcon-setup"
+        x: 191
+        y: -262
+      - name: external-network
+        template: "Ethernet switch"
+        x: -700
+        y: -159
+      - name: internal-network
+        template: "Ethernet switch"
+        x: 289
+        y: -159
+      - name: internet
+        template: "Cloud"
+        x: -743
+        y: -314
+      
+    gns3_links_spec:
+      - ["external-network", "Ethernet0", "internet", "eth0"]
+      - ["external-network", "Ethernet1", "Ampcon", "Ethernet1"]
+      - ["internal-network", "Ethernet0", "Ampcon", "Ethernet0"]
+      - ["internal-network", "Ethernet1", "ZTP-DHCP", "Ethernet1"]
+      - ["external-network", "Ethernet2", "ZTP-DHCP", "Ethernet0"]
+  collections:
+    - davidban77.gns3
+  tasks:
+    - name: Create network topology
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: pica8_evpn
+        state: present
+        nodes_spec: "{{ gns3_nodes_spec }}"
+        links_spec: "{{ gns3_links_spec }}"
+      register: result
+
+    - debug: var=result
+
+    - name: add labels in topology
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"262\" height=\"45\"><text font-family=\"Arial\" font-size=\"32.0\" fill=\"#000000\" fill-opacity=\"1.0\">Pica8 BGP-EVPN</text></svg>"
+          x: -314
+          y: -419
+          z: 2
+        status_code: 201
+    
+    - name: add Spine AS lable
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"89\" height=\"20\"><text font-family=\"TypeWriter\" font-size=\"10.0\" font-weight=\"bold\" fill=\"#000000\" fill-opacity=\"1.0\">Spine AS 65199</text></svg>"
+          x: -247
+          y: -247
+          z: 2
+        status_code: 201
+
+    - name: add multihoming lable
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"109\" height=\"20\"><text font-family=\"TypeWriter\" font-size=\"10.0\" font-weight=\"bold\" fill=\"#000000\" fill-opacity=\"1.0\">EVPN Multihomeing</text></svg>"
+          x: 66
+          y: 11
+          z: 2
+        status_code: 201
+    
+    - name: add Credential lable
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"122\" height=\"60\"><text font-family=\"Arial\" font-size=\"11.0\" fill=\"#000000\" fill-opacity=\"1.0\">Credential:\nPICOS:   admin/pica8\nUbuntu:  ubuntu/ubuntu\nAmpcon:  root/pica8</text></svg>"
+          x: -877
+          y: -140
+          z: 2
+        status_code: 201
+
+    - name: add Spine Area
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"437\" height=\"109\"><rect width=\"437\" height=\"109\" fill=\"#ffffff\" fill-opacity=\"1.0\" stroke-dasharray=\"25, 25\" stroke-width=\"2\" stroke=\"#000000\" /></svg>"
+          x: -404
+          y: -291
+          z: 0
+        status_code: 201
+
+    - name: add multihoming Area
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"507\" height=\"247\"><rect width=\"507\" height=\"247\" fill=\"#ffffff\" fill-opacity=\"1.0\" stroke-dasharray=\"25, 25\" stroke-width=\"1\" stroke=\"#000000\" /></svg>"
+          x: -94
+          y: -31
+          z: 0
+        status_code: 201
+
+    - name: add LAG icon
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"102.27585772423208\" height=\"21.640133528431463\"><ellipse cx=\"51\" rx=\"52\" cy=\"10\" ry=\"11\" fill=\"#ffffff\" fill-opacity=\"1.0\" stroke-dasharray=\"25, 25, 5, 25, 5\" stroke-width=\"1\" stroke=\"#000000\" /></svg>"
+          x: -29
+          y: 98
+          z: 0
+          rotation: 35
+        status_code: 201
+    
+    - name: add LAG icon
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"102.27585772423208\" height=\"21.640133528431463\"><ellipse cx=\"51\" rx=\"52\" cy=\"10\" ry=\"11\" fill=\"#ffffff\" fill-opacity=\"1.0\" stroke-dasharray=\"25, 25, 5, 25, 5\" stroke-width=\"1\" stroke=\"#000000\" /></svg>"
+          x: 259
+          y: 155
+          z: 0
+          rotation: -35
+        status_code: 201
+
+    - name: Get all nodes in project
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes'
+        method: GET
+        status_code: 200
+      register: nodes
+
+    - name: change mac address for ZTP host-1
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:CC:CC:11",
+            "port_name": "Ethernet0"}]
+        status_code: 200
+      when : item["name"] == "host-1"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP host-2
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:CC:CC:22",
+            "port_name": "Ethernet0"}]
+        status_code: 200
+      when : item["name"] == "host-2"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP host-3
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:CC:CC:33",
+            "port_name": "Ethernet0"}]
+        status_code: 200
+      when : item["name"] == "host-3"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP host-4
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:CC:CC:44",
+            "port_name": "Ethernet0"}]
+        status_code: 200
+      when : item["name"] == "host-4"
+      with_items: "{{ nodes['json'] }}"
+
+    - name: Start nodes
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: pica8_evpn
+        state: opened
+        nodes_state: started
+        nodes_strategy: one_by_one

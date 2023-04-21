@@ -1,0 +1,81 @@
+set system hostname {{ hostname }}
+
+{% for port in network_side_ports -%}
+{% set port_name = port.keys() | first -%}
+set interface gigabit-ethernet {{ port_name }} routed-interface name {{ port[port_name]['routed-interface'] }}
+set interface gigabit-ethernet {{ port_name }} routed-interface enable true
+set l3-interface routed-interface {{ port[port_name]['routed-interface'] }}
+{% endfor -%}
+
+{% for port in host_side_ports -%}
+{% set port_name = port.keys() | first -%}
+set interface gigabit-ethernet {{ port_name }} family ethernet-switching port-mode {{ port[port_name]['vlan_mode'] }}
+set interface gigabit-ethernet {{ port_name }} family ethernet-switching vlan members {{ port[port_name]['vlans']|join(',') }}
+{% endfor -%}
+
+set ip routing enable true
+
+{% for vrf in vrf_list -%}
+set ip vrf {{vrf["vrf_name"]}}
+set l3-interface loopback {{vrf["vrf_name"]}} address {{vrf["vrf_address"].split('/')[0]}} prefix-length {{vrf["vrf_address"].split('/')[1]}}
+{% endfor -%}
+
+{% for lo_port in loopback_interfaces -%}
+{% set port_name = lo_port.keys() | first -%}
+set l3-interface loopback {{ port_name }} address {{ lo_port[port_name]['address'].split('/')[0] }} prefix-length {{ lo_port[port_name]['address'].split('/')[1] }}
+{% endfor -%}
+
+{% for vlan_if in host_side_vlan_interfaces -%}
+set l3-interface vlan-interface {{ vlan_if["vlan_interface"] }} vrf {{ vlan_if["vrf"] }}
+set l3-interface vlan-interface {{ vlan_if["vlan_interface"] }} router-mac {{ vlan_if["router_mac"] }}
+set l3-interface vlan-interface {{ vlan_if["vlan_interface"] }} address {{ vlan_if["ipv4_address"].split('/')[0] }} prefix-length {{ vlan_if["ipv4_address"].split('/')[1] }}
+set l3-interface vlan-interface {{ vlan_if["vlan_interface"] }} address {{ vlan_if["ipv6_address"].split('/')[0] }} prefix-length {{ vlan_if["ipv6_address"].split('/')[1] }}
+set vlans vlan-id {{ vlan_if["vlan_id"] }} l3-interface {{ vlan_if["vlan_interface"] }}
+{% endfor -%}
+
+{% for vlan_if in network_side_vlan_interfaces -%}
+set l3-interface vlan-interface {{ vlan_if["vlan_interface"] }} vrf {{ vlan_if["vrf"] }}
+set vlans vlan-id {{ vlan_if["vlan_id"] }} l3-interface {{ vlan_if["vlan_interface"] }}
+{% endfor -%}
+
+set vxlans source-interface {{ vxlan_source_interface["interface"] }} address {{ vxlan_source_interface["address"] }}
+{% for vni in vxlan_vlan_mapping -%}
+set vxlans vni {{ vni["vni"] }} decapsulation mode {{ vni["decapsulation"] }}
+set vxlans vni {{ vni["vni"] }} vlan {{ vni["vlan"] }}
+set vxlans vni {{ vni["vni"] }} arp-nd-suppress disable {{ vni["arp-nd-suppress-disable"] }}
+{% endfor -%}
+
+{% for vni in l3_vni -%}
+set vxlans vni {{ vni["vni"] }} vlan {{ vni["vlan"] }}
+set vxlans vrf {{ vni["vrf"] }} l3-vni {{ vni["vni"] }}
+{% endfor -%}
+
+set vlans reserved-vlan "3000-3010"
+
+set protocols bgp local-as {{ bgp["asn"] }}
+set protocols bgp fast-external-failover true
+set protocols bgp ebgp-requires-policy false
+set protocols bgp network-import-check true
+set protocols bgp router-id {{ bgp["router-id"] }}
+set protocols bgp peer-group {{ bgp["peer-group"] }} remote-as "external"
+{% for port in bgp["interface"] -%}
+set protocols bgp interface {{ port }} capability extended-nexthop
+set protocols bgp interface {{ port }} ipv6-unicast activate true
+set protocols bgp interface {{ port }} evpn activate true
+set protocols bgp interface {{ port }} peer-group "{{ bgp["peer-group"] }}"
+{% endfor -%}
+set protocols bgp ipv4-unicast network {{ bgp["ipv4-unicast"] }}
+set protocols bgp evpn advertise-all-vni
+set protocols bgp evpn advertise ipv4-unicast
+set protocols bgp evpn advertise ipv6-unicast
+{% for vrf in bgp["vrf"] -%}
+set protocols bgp vrf {{ vrf["vrf_name"] }} local-as {{ bgp["asn"] }}
+set protocols bgp vrf {{ vrf["vrf_name"] }} fast-external-failover true
+set protocols bgp vrf {{ vrf["vrf_name"] }} network-import-check true
+set protocols bgp vrf {{ vrf["vrf_name"] }} router-id {{ bgp["router-id"] }}
+set protocols bgp vrf {{ vrf["vrf_name"] }} ipv4-unicast network {{ vrf["ipv4-unicast"] }}
+set protocols bgp vrf {{ vrf["vrf_name"] }} evpn advertise ipv4-unicast
+set protocols bgp vrf {{ vrf["vrf_name"] }} evpn advertise ipv6-unicast
+{% endfor -%}
+
+set protocols lldp enable true
