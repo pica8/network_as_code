@@ -3,23 +3,23 @@
 - hosts: localhost
   gather_facts: no
   vars:
-    gns3_url: "http://172.16.0.169"
+    gns3_url: "http://localhost"
     gns3_port: 80
     gns3_nodes_spec:
       - name: host-1
-        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        template: "ubuntu-test-host"
         x: -693
         y: 142
       - name: host-2
-        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        template: "ubuntu-test-host"
         x: -392
         y: 142
       - name: host-3
-        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        template: "ubuntu-test-host"
         x: -55
         y: 142
       - name: host-4
-        template: "Ubuntu Cloud Guest 20.04 (LTS)"
+        template: "ubuntu-test-host"
         x: 304
         y: 142
       - name: ZTP-DHCP
@@ -45,8 +45,8 @@
       
     gns3_links_spec:
       - ["external-network", "Ethernet0", "internet", "eth0"]
-      - ["external-network", "Ethernet1", "Ampcon", "Ethernet1"]
-      - ["internal-network", "Ethernet0", "Ampcon", "Ethernet0"]
+      - ["external-network", "Ethernet1", "Ampcon", "Ethernet0"]
+      - ["internal-network", "Ethernet0", "Ampcon", "Ethernet1"]
       - ["internal-network", "Ethernet1", "ZTP-DHCP", "Ethernet1"]
       - ["external-network", "Ethernet2", "ZTP-DHCP", "Ethernet0"]
   collections:
