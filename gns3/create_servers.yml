@@ -39,7 +39,7 @@
         x: 289
         y: -159
       - name: internet
-        template: "Cloud"
+        template: "NAT"
         x: -743
         y: -314
       
