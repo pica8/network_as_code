@@ -1,10 +1,8 @@
 ---
 
-- hosts: localhost
+- hosts: [ansible-servers]
   gather_facts: no
   vars:
-    gns3_url: "http://localhost"
-    gns3_port: 80
     gns3_nodes_spec:
       - name: host-1
         template: "ubuntu-test-host"
@@ -22,33 +20,32 @@
         template: "ubuntu-test-host"
         x: 304
         y: 142
-      - name: ZTP-DHCP
+      - name: ZTP
         template: "ZTP-server"
-        x: 289
-        y: -262
+        x: 357
+        y: -255
       - name: Ampcon
         template: "Ampcon-setup"
-        x: 191
-        y: -262
+        x: 269
+        y: -255
       - name: external-network
         template: "Ethernet switch"
-        x: -700
-        y: -159
-      - name: internal-network
+        x: 137
+        y: -243
+      - name: OOB-network
         template: "Ethernet switch"
-        x: 289
-        y: -159
+        x: 353
+        y: -140
       - name: internet
         template: "NAT"
-        x: -743
-        y: -314
+        x: 95
+        y: -359
       
     gns3_links_spec:
-      - ["external-network", "Ethernet0", "internet", "eth0"]
+      - ["external-network", "Ethernet0", "internet", "nat0"]
       - ["external-network", "Ethernet1", "Ampcon", "Ethernet0"]
-      - ["internal-network", "Ethernet0", "Ampcon", "Ethernet1"]
-      - ["internal-network", "Ethernet1", "ZTP-DHCP", "Ethernet1"]
-      - ["external-network", "Ethernet2", "ZTP-DHCP", "Ethernet0"]
+      - ["OOB-network", "Ethernet0", "Ampcon", "Ethernet1"]
+      - ["OOB-network", "Ethernet1", "ZTP", "Ethernet1"]
   collections:
     - davidban77.gns3
   tasks:
@@ -56,7 +53,7 @@
       gns3_project:
         url: "{{ gns3_url }}"
         port: "{{ gns3_port }}"
-        project_name: pica8_evpn
+        project_name: "{{ project_name }}"
         state: present
         nodes_spec: "{{ gns3_nodes_spec }}"
         links_spec: "{{ gns3_links_spec }}"

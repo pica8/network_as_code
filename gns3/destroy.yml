@@ -1,7 +1,7 @@
 - hosts: localhost
   gather_facts: no
   vars:
-    gns3_url: "http://172.16.0.169"
+    gns3_url: "http://localhost"
     gns3_port: 80
   collections:
     - davidban77.gns3

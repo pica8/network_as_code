@@ -3,8 +3,6 @@
 - hosts: localhost
   gather_facts: no
   vars:
-    gns3_url: "http://localhost"
-    gns3_port: 80
     gns3_nodes_spec:
       - name: spine-1
         template: "picos-v4.3.2.2"
@@ -47,12 +45,12 @@
       - ["leaf-3", "swp4", "host-4", "Ethernet1"]
       - ["leaf-4", "swp3", "host-3", "Ethernet2"]
       - ["leaf-4", "swp4", "host-4", "Ethernet2"]
-      - ["internal-network", "Ethernet2", "spine-1", "eth0"]
-      - ["internal-network", "Ethernet3", "spine-2", "eth0"]
-      - ["internal-network", "Ethernet4", "leaf-1", "eth0"]
-      - ["internal-network", "Ethernet5", "leaf-2", "eth0"]
-      - ["internal-network", "Ethernet6", "leaf-3", "eth0"]
-      - ["internal-network", "Ethernet7", "leaf-4", "eth0"]
+      - ["OOB-network", "Ethernet2", "spine-1", "eth0"]
+      - ["OOB-network", "Ethernet3", "spine-2", "eth0"]
+      - ["OOB-network", "Ethernet4", "leaf-1", "eth0"]
+      - ["OOB-network", "Ethernet5", "leaf-2", "eth0"]
+      - ["OOB-network", "Ethernet6", "leaf-3", "eth0"]
+      - ["OOB-network", "Ethernet7", "leaf-4", "eth0"]
   collections:
     - davidban77.gns3
   tasks:
@@ -60,7 +58,7 @@
       gns3_project:
         url: "{{ gns3_url }}"
         port: "{{ gns3_port }}"
-        project_name: pica8_evpn
+        project_name: "{{ project_name }}"
         state: present
         nodes_spec: "{{ gns3_nodes_spec }}"
         links_spec: "{{ gns3_links_spec }}"
