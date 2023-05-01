@@ -156,7 +156,7 @@
       gns3_project:
         url: "{{ gns3_url }}"
         port: "{{ gns3_port }}"
-        project_name: pica8_evpn
+        project_name: "{{ project_name }}"
         state: opened
         nodes_state: started
         nodes_strategy: one_by_one

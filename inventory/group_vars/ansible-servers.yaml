@@ -1,5 +1,5 @@
 ---
 
-gns3_url: http://172.16.0.168
+gns3_url: http://192.168.122.1
 gns3_port: 80
-project_name: Campus_network
+project_name: new_test

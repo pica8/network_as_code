@@ -1,0 +1,104 @@
+---
+
+- hosts: localhost
+  gather_facts: no
+  vars:
+    gns3_nodes_spec:
+      - name: leaf-1
+        template: "picos-v4.3.2.2"
+        x: -685
+        y: 0
+      - name: leaf-2
+        template: "picos-v4.3.2.2"
+        x: -385
+        y: 0
+      - name: host-1
+        template: "ubuntu-test-host"
+        x: -693
+        y: 142
+      - name: host-2
+        template: "ubuntu-test-host"
+        x: -392
+        y: 142
+      
+    gns3_links_spec:
+      - ["spine-1", "swp1", "leaf-1", "swp1"]
+      - ["spine-1", "swp2", "leaf-2", "swp1"]
+      - ["spine-2", "swp1", "leaf-1", "swp2"]
+      - ["spine-2", "swp2", "leaf-2", "swp2"]
+      - ["leaf-1", "swp3", "host-1", "Ethernet1"]
+      - ["leaf-1", "swp4", "host-2", "Ethernet1"]
+      - ["leaf-2", "swp3", "host-1", "Ethernet2"]
+      - ["leaf-2", "swp4", "host-2", "Ethernet2"]
+      - ["OOB-network", "Ethernet4", "leaf-1", "eth0"]
+      - ["OOB-network", "Ethernet5", "leaf-2", "eth0"]
+
+  collections:
+    - davidban77.gns3
+  tasks:
+    - name: Create network topology
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: "{{ project_name }}"
+        state: present
+        nodes_spec: "{{ gns3_nodes_spec }}"
+        links_spec: "{{ gns3_links_spec }}"
+      register: result
+
+    - debug: var=result
+
+    - name: Get all nodes in project
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes'
+        method: GET
+        status_code: 200
+      register: nodes
+
+    - name: change mac address for ZTP leaf-1
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:BB:BB:11",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "leaf-1"
+      with_items: "{{ nodes['json'] }}"
+    - name: change mac address for ZTP leaf-2
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/nodes/{{ item["node_id"] }}'
+        method: PUT
+        body_format: json
+        body:
+            custom_adapters: [{
+            "adapter_number": 0,
+            "mac_address": "00:00:00:BB:BB:22",
+            "port_name": "eth0"}]
+        status_code: 200
+      when : item["name"] == "leaf-2"
+      with_items: "{{ nodes['json'] }}"
+
+    - name: add multihoming Area
+      uri:
+        url: '{{ gns3_url }}/v2/projects/{{ result["project"]["project_id"] }}/drawings'
+        method: POST
+        body_format: json
+        body:
+          svg: "<svg width=\"507\" height=\"247\"><rect width=\"507\" height=\"247\" fill=\"#ffffff\" fill-opacity=\"1.0\" stroke-dasharray=\"25, 25\" stroke-width=\"1\" stroke=\"#000000\" /></svg>"
+          x: -740
+          y: -31
+          z: 0
+        status_code: 201
+
+    - name: Start nodes
+      gns3_project:
+        url: "{{ gns3_url }}"
+        port: "{{ gns3_port }}"
+        project_name: "{{ project_name }}"
+        state: opened
+        nodes_state: started
+        nodes_strategy: one_by_one
